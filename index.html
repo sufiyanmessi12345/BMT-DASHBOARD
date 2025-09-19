@@ -1,0 +1,767 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Machine Tools - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="https://fpfaviconimages.withfloats.com/tile/62f0e7afd344c2000194775c.jpg">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none; }
+        .highlight-duplicate { border-color: #ef4444 !important; background-color: #fef2f2 !important; }
+    </style>
+</head>
+<body class="bg-gray-100">
+{% load static %}
+    <div id="login-view" class="flex items-center justify-center min-h-screen">
+        <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <img src="https://fplogoimages.withfloats.com/actual/687f42983064204ed5f1a18b.jpg" class="w-32 mx-auto mb-4" alt="Logo">
+                <h1 class="text-2xl font-bold text-gray-800">Welcome Back</h1>
+                <p class="text-gray-500">Please login to your respective section</p>
+            </div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="section" class="block text-sm font-medium text-gray-700 mb-2">Select Section</label>
+                    <select id="section" name="section" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-gray-800 focus:border-gray-800" required>
+                        <option value="" disabled selected>-- Choose a section --</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="username" name="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-gray-800 focus:border-gray-800" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-gray-800 focus:border-gray-800" required>
+                </div>
+                <div>
+                    <button type="submit" class="w-full bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors shadow-md">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-view" class="hidden">
+        <header class="bg-white shadow-md">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <img src="https://fplogoimages.withfloats.com/actual/687f42983064204ed5f1a18b.jpg" class="h-10" alt="Logo">
+                    <div class="flex items-center gap-4">
+                         <h1 id="dashboard-title" class="text-xl font-semibold text-gray-700"></h1>
+                        <button id="logout-btn" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-md">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <div class="flex justify-end mb-4" id="export-container">
+                <button id="export-btn" class="bg-green-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-md">
+                    Export Data
+                </button>
+            </div>
+            <main id="main-content" class="flex-1"></main>
+        </div>
+
+        <footer class="bg-gray-200 text-center p-4 mt-8">
+            <p class="text-gray-600">&#xa9;2025. All Rights Reserved.</p>
+        </footer>
+    </div>
+    
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div class="bg-white p-5 rounded-lg shadow-xl w-full max-w-sm mx-auto">
+            <div class="text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Are you sure?</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="modal-content">Do you really want to delete this item? This process cannot be undone.</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="modal-confirm-btn" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">Confirm</button>
+                    <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-auto ml-2 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="file-upload-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-20">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-auto">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Attach File</h3>
+            <div>
+                <input type="file" id="file-input" class="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                <input type="hidden" id="file-item-id">
+            </div>
+            <div class="mt-4 flex justify-end gap-3">
+                <button id="modal-file-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button id="modal-file-save-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save File</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="hidden fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg z-50">
+        <p id="toast-message"></p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const mainContentContainer = document.getElementById('main-content');
+        const dashboardTitle = document.getElementById('dashboard-title');
+        const sectionDropdown = document.getElementById('section');
+        const loginForm = document.getElementById('login-form');
+        const logoutBtn = document.getElementById('logout-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const exportContainer = document.getElementById('export-container');
+        const confirmModal = document.getElementById('confirm-modal');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        let confirmCallback = null;
+        const toast = document.getElementById('toast-notification');
+        const toastMessage = document.getElementById('toast-message');
+        const fileUploadModal = document.getElementById('file-upload-modal');
+        const fileInput = document.getElementById('file-input');
+        const fileItemIdInput = document.getElementById('file-item-id');
+        const modalFileSaveBtn = document.getElementById('modal-file-save-btn');
+        const modalFileCancelBtn = document.getElementById('modal-file-cancel-btn');
+
+        const fieldOrder = [
+            'Order ID', 'Customer Name', 'Contact Person', 'Product', 'Assigned To', 
+            'PO Number', 'DC number', 'PO over due', 'PO expiry over due', 
+            'Order Date', 'Expected Date', 'Quantity', 'balance qty', 'sent qty', 'UOM', 'T.D.', 
+            'Description', 'Note', 'Status', 'Pending Days'
+        ];
+
+        const sections = [
+            { id: 'received-orders', title: 'Received Orders', icon: '📦', fields: [...fieldOrder] },
+            { id: 'design-engineering', title: 'Design & Engineering', icon: '📐', fields: [...fieldOrder] },
+            { id: 'procurement', title: 'Procurement / Purchasing', icon: '🛒', fields: [...fieldOrder] },
+            { id: 'production-planning', title: 'Production Planning', icon: '🏭', fields: [...fieldOrder] },
+            { id: 'quality-control', title: 'Quality Control', icon: '🔬', fields: [...fieldOrder] },
+            { id: 'packaging-dispatch', title: 'Packaging & Dispatch', icon: '🚚', fields: [...fieldOrder] },
+            { id: 'warehouse', title: 'Warehouse', icon: '🏬', fields: [...fieldOrder] },
+            { id: 'pending-orders', title: 'Pending Orders', icon: '⏳', fields: [...fieldOrder, 'Source Section'] }
+        ];
+        
+        const defaultUsers = {
+            admin: { username: "admin", password: "password" },
+            "received-orders": { username: "received", password: "1234" },
+            "design-engineering": { username: "design", password: "1234" },
+            "procurement": { username: "procurement", password: "1234" },
+            "production-planning": { username: "production", password: "1234" },
+            "quality-control": { username: "quality", password: "1234" },
+            "packaging-dispatch": { username: "packaging", password: "1234" },
+            "warehouse": { username: "warehouse", password: "1234" },
+            "pending-orders": { username: "pending", password: "1234" }
+        };
+
+        // ============================
+        //  Backend API helper methods
+        //  (replace previous localStorage usage)
+        // ============================
+
+        // NOTE:
+        // This file expects the following Django endpoints:
+        // GET /api/users/                         -> returns JSON object of users (same shape as defaultUsers)
+        // POST /api/users/                        -> accepts JSON (users object) to save/update users
+        // GET /api/sections/<section_id>/         -> returns array of items for the section
+        // PUT /api/sections/<section_id>/         -> replace array of items for the section (body: array)
+        // POST /api/sections/<section_id>/        -> add a single item (body: item) -> returns created item
+        // POST /api/sections/<section_id>/files/  -> attach file (FormData: item_id, file) -> returns updated item or success
+        //
+        // Your Django views should implement these routes. If you prefer slightly different routes
+        // (e.g., delete item endpoints), you can adapt them server-side — frontend can be changed accordingly.
+
+        async function apiGetUsers() {
+            try {
+                const res = await fetch('/api/users/');
+                if (!res.ok) throw new Error('Failed to fetch users');
+                const data = await res.json();
+                return data;
+            } catch (e) {
+                // fallback to default users if backend unavailable
+                return defaultUsers;
+            }
+        }
+
+        async function apiSaveUsers(users) {
+            try {
+                const res = await fetch('/api/users/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(users)
+                });
+                return await res.json();
+            } catch (e) {
+                // ignore errors for now
+                return null;
+            }
+        }
+
+        async function getSectionData(sectionId) {
+            try {
+                const res = await fetch(`/api/sections/${sectionId}/`);
+                if (!res.ok) throw new Error('Failed to fetch section data');
+                return await res.json();
+            } catch (e) {
+                // on failure, return empty array (frontend still functions)
+                return [];
+            }
+        }
+
+        // replace full dataset for a section (used for deletes/edits that send whole arrays)
+        async function saveSectionData(sectionId, data) {
+            try {
+                const res = await fetch(`/api/sections/${sectionId}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) throw new Error('Failed to save section data');
+                return await res.json();
+            } catch (e) {
+                showToast('Error saving data to server', 'error');
+                return null;
+            }
+        }
+
+        // add single item (returns created item from server if available)
+        async function addDataItem(sectionId, item) {
+            try {
+                const res = await fetch(`/api/sections/${sectionId}/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                });
+                if (!res.ok) throw new Error('Failed to add item');
+                const created = await res.json();
+                // if backend returns created item object, use it, otherwise fall back to attaching a _id client-side
+                if (created && (created._id || created.id)) return created;
+                const newItem = { ...item, _id: Date.now() };
+                // ensure backend has it (attempt PUT fallback)
+                const current = await getSectionData(sectionId);
+                current.push(newItem);
+                await saveSectionData(sectionId, current);
+                return newItem;
+            } catch (e) {
+                // fallback: add locally by replacing via PUT call above may fail; still return local item
+                const newItem = { ...item, _id: Date.now() };
+                const current = await getSectionData(sectionId);
+                current.push(newItem);
+                await saveSectionData(sectionId, current);
+                return newItem;
+            }
+        }
+
+        // delete an item by _id using PUT (filter and replace dataset)
+        async function deleteDataItem(itemId) {
+            if (!currentSection) return;
+            try {
+                let data = await getSectionData(currentSection.id);
+                data = data.filter(item => item._id !== itemId);
+                await saveSectionData(currentSection.id, data);
+                renderDashboard();
+            } catch (e) {
+                showToast('Error deleting item', 'error');
+            }
+        }
+
+        // admin: delete item from any section (sectionId provided)
+        async function deleteItemFromAnySection(sectionId, itemId) {
+            if (!sectionId || !itemId) return;
+            try {
+                let data = await getSectionData(sectionId);
+                data = data.filter(item => item._id !== itemId);
+                await saveSectionData(sectionId, data);
+                renderDashboard();
+                showToast('Item deleted successfully!', 'success');
+            } catch (e) {
+                showToast('Error deleting item', 'error');
+            }
+        }
+
+        async function removeItemFromCurrentSection(orderId) {
+            if (!currentSection || !orderId) return;
+            try {
+                let data = await getSectionData(currentSection.id);
+                data = data.filter(item => item['order-id'] !== orderId);
+                await saveSectionData(currentSection.id, data);
+            } catch (e) {
+                showToast('Error removing item', 'error');
+            }
+        }
+
+        // File upload: send FormData to backend endpoint
+        function openFileUploadModal(itemId) { fileItemIdInput.value = itemId; fileUploadModal.classList.remove('hidden'); }
+        function closeFileUploadModal() { fileInput.value = ''; fileItemIdInput.value = ''; fileUploadModal.classList.add('hidden'); }
+
+        async function saveFile() { 
+            const itemId = parseInt(fileItemIdInput.value, 10); 
+            const file = fileInput.files[0]; 
+            if (!itemId || !file) { showToast('No item selected or no file chosen.', 'error'); return; } 
+
+            // prefer sending file as multipart/form-data to backend
+            const form = new FormData();
+            form.append('item_id', itemId);
+            form.append('file', file);
+
+            try {
+                const res = await fetch(`/api/sections/${currentSection.id}/files/`, {
+                    method: 'POST',
+                    body: form
+                });
+                if (!res.ok) throw new Error('File upload failed');
+                // backend should return updated item or success
+                const result = await res.json();
+                showToast('File attached successfully!', 'success');
+                closeFileUploadModal();
+                renderDashboard();
+            } catch (e) {
+                // Fallback: if backend doesn't support file storage, convert to dataURL and embed
+                const reader = new FileReader();
+                reader.onload = async (event) => { 
+                    const dataUrl = event.target.result; 
+                    const fileInfo = { name: file.name, type: file.type, dataUrl: dataUrl }; 
+                    try {
+                        let data = await getSectionData(currentSection.id);
+                        const itemIndex = data.findIndex(item => item._id === itemId);
+                        if (itemIndex > -1) {
+                            if (!data[itemIndex].files) { data[itemIndex].files = []; }
+                            data[itemIndex].files.push(fileInfo);
+                            await saveSectionData(currentSection.id, data);
+                            showToast('File attached successfully (saved as dataURL)!', 'success'); 
+                            closeFileUploadModal(); 
+                            renderDashboard(); 
+                        } else { 
+                            showToast('Could not find the item.', 'error'); 
+                        }
+                    } catch (err2) {
+                        showToast('Failed to save file to server', 'error');
+                    }
+                }; 
+                reader.readAsDataURL(file); 
+            }
+        }
+        
+        modalConfirmBtn.addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmModal.classList.add('hidden'); confirmCallback = null; });
+        modalCancelBtn.addEventListener('click', () => { confirmModal.classList.add('hidden'); confirmCallback = null; });
+        modalFileSaveBtn.addEventListener('click', saveFile);
+        modalFileCancelBtn.addEventListener('click', closeFileUploadModal);
+
+        // Duplicate check across all sections (calls backend)
+        async function isOrderIdDuplicate(orderId, currentSectionId = null) { 
+            if (!orderId) return false; 
+            try {
+                // fetch all sections' data concurrently
+                const promises = sections.map(sec => getSectionData(sec.id));
+                const results = await Promise.all(promises);
+                for (let i = 0; i < sections.length; i++) {
+                    const sec = sections[i];
+                    if (currentSectionId && sec.id === currentSectionId) continue;
+                    const data = results[i] || [];
+                    if (data.some(item => item['order-id'] === orderId)) {
+                        return sec.title;
+                    }
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function getNextSection(currentSectionId) { 
+            const workflowOrder = ['received-orders', 'design-engineering', 'procurement', 'production-planning', 'quality-control', 'packaging-dispatch', 'warehouse']; 
+            const currentIndex = workflowOrder.indexOf(currentSectionId); 
+            if (currentIndex >= 0 && currentIndex < workflowOrder.length - 1) { 
+                return sections.find(s => s.id === workflowOrder[currentIndex + 1]); 
+            } 
+            return null; 
+        }
+
+        // Render dashboard (uses backend for data)
+        async function renderDashboard() {
+            if (!currentSection) return;
+
+            if (currentSection.id === 'admin') {
+                dashboardTitle.textContent = `Admin Panel`;
+                exportContainer.classList.remove('hidden');
+                
+                const users = await apiGetUsers();
+                let userTableHTML = `<div class="bg-white p-6 rounded-xl shadow-md mb-6"><h2 class="text-2xl font-bold mb-4">Manage User Credentials</h2><table class="w-full border"><thead class="bg-gray-100"><tr><th class="px-4 py-2">Section</th><th class="px-4 py-2">Username</th><th class="px-4 py-2">Password</th><th class="px-4 py-2">Action</th></tr></thead><tbody>${Object.keys(users).map(sec => `<tr class="border-b"><td class="px-4 py-2">${sec}</td><td class="px-4 py-2"><input data-section="${sec}" class="username-input border px-2 py-1 rounded" value="${users[sec].username}"></td><td class="px-4 py-2"><input data-section="${sec}" class="password-input border px-2 py-1 rounded" value="${users[sec].password}"></td><td class="px-4 py-2"><button class="save-btn bg-blue-500 text-white px-3 py-1 rounded" data-section="${sec}">Save</button></td></tr>`).join('')}</tbody></table></div>`;
+
+                let regularTablesHTML = sections
+                    .filter(sec => sec.id !== 'pending-orders')
+                    .map(sec => {
+                        const dataPromise = getSectionData(sec.id);
+                        // build placeholder; we'll replace with actual data once fetched
+                        const adminFields = [...sec.fields, 'Attached Files', 'Actions'];
+                        return `<div class="bg-white p-6 rounded-xl shadow-md mb-6" data-section-id="${sec.id}"><h3 class="text-xl font-semibold mb-2">${sec.title}</h3><div class="overflow-x-auto"><table class="w-full border text-sm"><thead class="bg-gray-50"><tr>${adminFields.map(f => `<th class="px-2 py-1">${f}</th>`).join('')}</tr></thead><tbody data-section-body="${sec.id}"><tr><td colspan="${adminFields.length}" class="text-center py-2">Loading...</td></tr></tbody></table></div></div>`;
+                    }).join('');
+
+                const pendingSection = sections.find(s => s.id === 'pending-orders');
+                let pendingData = [];
+                // pendingTable will be filled after we fetch data
+                let pendingTableHTML = `<div class="bg-white p-6 rounded-xl shadow-md mb-6"><h3 class="text-xl font-semibold mb-2">${pendingSection.title}</h3><div class="overflow-x-auto"><table class="w-full border text-sm"><thead class="bg-gray-50"><tr>${[...pendingSection.fields, 'Attached Files', 'Actions'].map(f => `<th class="px-2 py-1">${f}</th>`).join('')}</tr></thead><tbody id="pending-body"><tr><td colspan="${pendingSection.fields.length + 2}" class="text-center py-2">Loading...</td></tr></tbody></table></div></div>`;
+
+                mainContentContainer.innerHTML = userTableHTML + regularTablesHTML + pendingTableHTML;
+
+                document.querySelectorAll('.save-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const section = btn.dataset.section;
+                        const username = document.querySelector(`.username-input[data-section="${section}"]`).value;
+                        const password = document.querySelector(`.password-input[data-section="${section}"]`).value;
+                        users[section] = { username, password };
+                        await apiSaveUsers(users);
+                        showToast('Credentials updated!', 'success');
+                    });
+                });
+
+                // fetch and populate each section table data
+                for (const sec of sections.filter(s => s.id !== 'pending-orders')) {
+                    const data = await getSectionData(sec.id);
+                    const adminFields = [...sec.fields, 'Attached Files', 'Actions'];
+                    const tbody = document.querySelector(`tbody[data-section-body="${sec.id}"]`);
+                    if (!tbody) continue;
+                    if (data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="${adminFields.length}" class="text-center py-2">No Data</td></tr>`;
+                    } else {
+                        tbody.innerHTML = data.map(item => `<tr class="border-b">${sec.fields.map(f => `<td class="px-2 py-1">${item[f.toLowerCase().replace(/ /g, '-').replace(/\./g, '')] || ''}</td>`).join('')}<td class="px-2 py-1">${item.files && item.files.length > 0 ? item.files.map(file => `<a href="${file.dataUrl || ('/media/' + (file.path || file.name))}" download="${file.name}" class="text-blue-600 hover:underline block text-xs" title="Download ${file.name}">📄 ${file.name}</a>`).join('') : '<span class="text-xs text-gray-400">No files</span>'}</td><td class="px-2 py-1 whitespace-nowrap"><button class="admin-delete-btn text-red-500 hover:text-red-700 font-medium" data-item-id="${item._id}" data-section-id="${sec.id}">Delete</button></td></tr>`).join('');
+                    }
+                }
+
+                // pending data: aggregate from other relevant sections
+                let pendingDataAggregate = [];
+                for (const sec of sections) {
+                    if (sec.id !== 'pending-orders' && sec.id !== 'packaging-dispatch' && sec.id !== 'quality-control' && sec.id !== 'admin' && sec.id !== 'warehouse') {
+                        const data = await getSectionData(sec.id);
+                        pendingDataAggregate = pendingDataAggregate.concat(data.map(item => ({ ...item, 'source-section': sec.title, 'source-section-id': sec.id })));
+                    }
+                }
+                const pendingBody = document.getElementById('pending-body');
+                const pendingFields = [...pendingSection.fields, 'Attached Files', 'Actions'];
+                if (pendingDataAggregate.length === 0) {
+                    pendingBody.innerHTML = `<tr><td colspan="${pendingFields.length}" class="text-center py-2">No Data</td></tr>`;
+                } else {
+                    pendingBody.innerHTML = pendingDataAggregate.map(item => `<tr class="border-b">${pendingSection.fields.map(f => `<td class="px-2 py-1">${item[f.toLowerCase().replace(/ /g, '-').replace(/\./g, '')] || ''}</td>`).join('')}<td class="px-2 py-1">${item.files && item.files.length > 0 ? item.files.map(file => `<a href="${file.dataUrl || ('/media/' + (file.path || file.name))}" download="${file.name}" class="text-blue-600 hover:underline block text-xs" title="Download ${file.name}">📄 ${file.name}</a>`).join('') : '<span class="text-xs text-gray-400">No files</span>'}</td><td class="px-2 py-1 whitespace-nowrap"><button class="admin-delete-btn text-red-500 hover:text-red-700 font-medium" data-item-id="${item._id}" data-section-id="${item['source-section-id']}">Delete</button></td></tr>`).join('');
+                }
+
+                // admin delete listeners (after DOM is filled)
+                document.querySelectorAll('.admin-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const itemId = parseInt(e.target.dataset.itemId, 10);
+                        const sectionId = e.target.dataset.sectionId;
+                        showConfirm(() => deleteItemFromAnySection(sectionId, itemId));
+                    });
+                });
+
+                return;
+            }
+            
+            // Non-admin dashboards
+            exportContainer.classList.remove('hidden');
+            dashboardTitle.textContent = `${currentSection.title} Dashboard`;
+            mainContentContainer.innerHTML = '';
+            
+            if (currentSection.id === 'pending-orders') {
+                // Aggregate from all relevant sections
+                let combinedData = [];
+                for (const sec of sections) {
+                    if (sec.id !== 'pending-orders' && sec.id !== 'packaging-dispatch' && sec.id !== 'quality-control' && sec.id !== 'admin' && sec.id !== 'warehouse') {
+                        const data = await getSectionData(sec.id);
+                        const dataWithSource = data.map(item => ({ ...item, 'source-section': sec.title }));
+                        combinedData = combinedData.concat(dataWithSource);
+                    }
+                }
+                let headerHTML = `<div class="bg-white p-6 rounded-xl shadow-md mb-6"><h1 class="text-3xl font-bold text-gray-800">${currentSection.icon} ${currentSection.title}</h1></div>`;
+                const pendingTableHeaders = [...currentSection.fields, 'Attached Files'];
+                let tableHTML = `<div class="bg-white rounded-xl shadow-md overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${pendingTableHeaders.map(field => `<th scope="col" class="px-6 py-3">${field}</th>`).join('')}</tr></thead><tbody>${combinedData.length > 0 ? combinedData.map(item => `<tr class="bg-white border-b hover:bg-gray-50">${currentSection.fields.map(field => `<td class="px-6 py-4">${item[field.toLowerCase().replace(/ /g, '-').replace(/\./g, '')] || ''}</td>`).join('')}<td class="px-6 py-4">${item.files && item.files.length > 0 ? item.files.map(file => `<a href="${file.dataUrl || ('/media/' + (file.path || file.name))}" download="${file.name}" class="text-blue-600 hover:underline block text-xs" title="Download ${file.name}">📄 ${file.name}</a>`).join('') : '<span class="text-xs text-gray-400">No files</span>'}</td></tr>`).join('') : `<tr><td colspan="${pendingTableHeaders.length}" class="text-center py-8 text-gray-500">No data available.</td></tr>`}</tbody></table></div></div>`;
+                mainContentContainer.innerHTML = headerHTML + tableHTML;
+            } else {
+                // Current section UI
+                let sectionData = await getSectionData(currentSection.id);
+                let headerHTML = `<div class="bg-white p-6 rounded-xl shadow-md mb-6"><h1 class="text-3xl font-bold text-gray-800">${currentSection.icon} ${currentSection.title}</h1></div>`;
+                let copyControlsHTML = `<div class="bg-white p-4 rounded-xl shadow-md mb-6 flex items-center gap-4"><select id="target-section" class="px-4 py-2 border border-gray-300 rounded-lg"><option value="">-- Select Target Section --</option>${sections.filter(s => s.id !== currentSection.id && s.id !== 'pending-orders').map(sec => `<option value="${sec.id}">${sec.title}</option>`).join('')}</select><button id="copy-btn" class="bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-purple-700 shadow-md">Copy All to Selected Section</button></div>`;
+                let formHTML = `<div class="bg-white p-6 rounded-xl shadow-md mb-6"><h2 class="text-xl font-semibold text-gray-700 mb-4">Add New Entry</h2><form id="form-${currentSection.id}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${currentSection.fields.filter(f => f !== 'Source Section').map(field => {const fieldId = `form-${currentSection.id}-${field.toLowerCase().replace(/[^a-z0-9]/g, '-')}`; const fieldName = field.toLowerCase().replace(/ /g, '-').replace(/\./g, ''); let inputType = "text"; if (field.toLowerCase().includes('date') || field.toLowerCase().includes('dt')) inputType = "date"; else if (field.toLowerCase().includes('quantity') || field.toLowerCase().includes('qty') || field.toLowerCase().includes('days')) inputType = "number"; return `<div><label for="${fieldId}" class="block text-sm font-medium text-gray-600 mb-1">${field}</label>${['description', 'note'].includes(fieldName) ? `<textarea id="${fieldId}" name="${fieldName}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-800 focus:border-gray-800" rows="3"></textarea>` : `<input type="${inputType}" id="${fieldId}" name="${fieldName}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-800 focus:border-gray-800" ${field === 'Order ID' ? 'data-order-id' : ''} required>`}${field === 'Order ID' ? '<p id="order-id-warning" class="text-sm text-red-500 hidden mt-1">This Order ID already exists!</p>' : ''}</div>`;}).join('')}<div class="sm:col-span-2 lg:col-span-3 xl:col-span-4 flex flex-col gap-4 pt-4"><div class="flex justify-between gap-4"><button type="submit" class="bg-gray-800 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 shadow-md">Add</button><button type="button" id="submit-next-btn" class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 shadow-md">Submit & Next</button></div><div class="flex gap-4"><select id="copy-select" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg"><option value="">-- Select Saved Item to Fill Form --</option></select><button type="button" id="copy-fill-btn" class="bg-yellow-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-yellow-600 shadow-md">Fill Form</button></div></div></form></div>`;
+                const tableHeaders = [...currentSection.fields, 'Attached Files', 'Actions'];
+                let tableHTML = `<div class="bg-white rounded-xl shadow-md overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${tableHeaders.map(field => `<th scope="col" class="px-6 py-3">${field}</th>`).join('')}</tr></thead><tbody>${sectionData.length > 0 ? sectionData.map(item => `<tr class="bg-white border-b hover:bg-gray-50">${currentSection.fields.map(field => `<td class="px-6 py-4">${item[field.toLowerCase().replace(/ /g, '-').replace(/\./g, '')] || ''}</td>`).join('')}<td class="px-6 py-4">${item.files && item.files.length > 0 ? item.files.map(file => `<a href="${file.dataUrl || ('/media/' + (file.path || file.name))}" download="${file.name}" class="text-blue-600 hover:underline block text-xs" title="Download ${file.name}">📄 ${file.name}</a>`).join('') : '<span class="text-xs text-gray-400">No files</span>'}</td><td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">${currentSection.id === 'design-engineering' ? `<button class="attach-file-btn text-blue-500 hover:text-blue-700 font-medium" data-item-id="${item._id}">Attach</button>` : ''}<button class="delete-btn text-red-500 hover:text-red-700 font-medium" data-item-id="${item._id}">Delete</button></td></tr>`).join('') : `<tr><td colspan="${tableHeaders.length}" class="text-center py-8 text-gray-500">No data available.</td></tr>`}</tbody></table></div></div>`;
+                
+                mainContentContainer.innerHTML = headerHTML + copyControlsHTML + formHTML + tableHTML;
+
+                const copySelect = document.getElementById('copy-select');
+                sectionData.forEach(item => { copySelect.innerHTML += `<option value="${item._id}">${item['order-id'] || 'No ID'} - ${item['customer-name'] || 'No Name'}</option>`; });
+                
+                // Add item
+                document.getElementById(`form-${currentSection.id}`).addEventListener('submit', async (e) => { 
+                    e.preventDefault(); 
+                    const formData = new FormData(e.target); 
+                    const newItem = {}; 
+                    for (let [key, value] of formData.entries()) newItem[key] = value; 
+                    const orderId = newItem['order-id']; 
+                    if (orderId) { 
+                        const dup = await isOrderIdDuplicate(orderId, currentSection.id);
+                        if (dup) { 
+                            showToast(`Order ID "${orderId}" already exists!`, 'error'); 
+                            return; 
+                        } 
+                    }
+                    const created = await addDataItem(currentSection.id, newItem); 
+                    // ensure _id exists for subsequent interactions
+                    if (!created._id) created._id = Date.now();
+                    e.target.reset(); 
+                    renderDashboard(); 
+                    showToast('Item added!', 'success'); 
+                });
+
+                // Submit & Next
+                document.getElementById('submit-next-btn').addEventListener('click', async () => { 
+                    const formElement = document.querySelector(`#form-${currentSection.id}`); 
+                    const formData = new FormData(formElement); 
+                    const newItem = {}; 
+                    for (let [key, value] of formData.entries()) newItem[key] = value; 
+                    const orderId = newItem['order-id']; 
+                    if (!orderId) { showToast('Order ID is required!', 'error'); return; } 
+                    const nextSection = getNextSection(currentSection.id); 
+                    if (!nextSection) { showToast('This is the last section in the workflow.', 'warning'); return; } 
+                    const nextData = await getSectionData(nextSection.id);
+                    if (nextData.some(item => item['order-id'] === orderId)) { 
+                        showToast(`Order ID "${orderId}" already exists in ${nextSection.title}!`, 'warning'); 
+                        return; 
+                    } 
+                    const existingItemIndex = (await getSectionData(currentSection.id)).findIndex(item => item['order-id'] === orderId); 
+                    if (existingItemIndex > -1) { 
+                        // move existing item object to next section
+                        const existingData = await getSectionData(currentSection.id);
+                        const [existingItem] = existingData.splice(existingItemIndex, 1);
+                        await saveSectionData(currentSection.id, existingData);
+                        await addDataItem(nextSection.id, existingItem);
+                        showToast(`Order "${orderId}" moved to ${nextSection.title}!`, 'success'); 
+                    } else { 
+                        await addDataItem(nextSection.id, newItem); 
+                        showToast(`Order "${orderId}" submitted to ${nextSection.title}!`, 'success'); 
+                    } 
+                    formElement.reset(); 
+                    renderDashboard(); 
+                });
+
+                // Fill form from saved
+                document.getElementById('copy-fill-btn').addEventListener('click', async () => { 
+                    const selectedId = document.getElementById('copy-select').value; 
+                    if (!selectedId) { showToast('Please select an item to fill the form.', 'warning'); return; } 
+                    const selectedItem = (await getSectionData(currentSection.id)).find(item => item._id == selectedId); 
+                    if (!selectedItem) { showToast('Could not find the selected item.', 'error'); return; } 
+                    const formElement = document.querySelector(`#form-${currentSection.id}`); 
+                    for (const field of currentSection.fields) { 
+                        const fieldName = field.toLowerCase().replace(/ /g, '-').replace(/\./g, ''); 
+                        const input = formElement.querySelector(`[name="${fieldName}"]`); 
+                        if (input) { input.value = selectedItem[fieldName] || ''; } 
+                    } 
+                    showToast('Form filled with selected data.', 'success'); 
+                });
+
+                // Attach / Delete
+                document.querySelectorAll('.attach-file-btn').forEach(button => button.addEventListener('click', (e) => openFileUploadModal(parseInt(e.target.dataset.itemId, 10))));
+                document.querySelectorAll('.delete-btn').forEach(button => button.addEventListener('click', (e) => showConfirm(() => deleteDataItem(parseInt(e.target.dataset.itemId, 10)))));
+
+                // ✅ Copy All to Selected Section (NEW — fully wired)
+                const copyBtn = document.getElementById('copy-btn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async () => {
+                        const targetSectionId = document.getElementById('target-section').value;
+                        if (!targetSectionId) { showToast('Please select a target section.', 'warning'); return; }
+                        if (targetSectionId === currentSection.id) { showToast('Cannot copy to the same section.', 'warning'); return; }
+
+                        const sourceData = await getSectionData(currentSection.id);
+                        if (sourceData.length === 0) { showToast('No data available to copy.', 'warning'); return; }
+
+                        const targetData = await getSectionData(targetSectionId);
+                        let copied = 0, skipped = 0;
+                        const merged = [...targetData];
+
+                        sourceData.forEach((item, idx) => {
+                            if (merged.some(x => x['order-id'] === item['order-id'])) {
+                                skipped++;
+                            } else {
+                                // keep all item fields, including files; assign fresh _id
+                                merged.push({ ...item, _id: Date.now() + idx });
+                                copied++;
+                            }
+                        });
+
+                        await saveSectionData(targetSectionId, merged);
+                        showToast(`Copied ${copied} item(s), skipped ${skipped} duplicate(s).`, 'success');
+                    });
+                }
+            }
+        }
+
+        // Auth + Export (login uses backend users endpoint for credential validation)
+        loginForm.addEventListener('submit', async function(e) { 
+            e.preventDefault(); 
+            const sectionId = sectionDropdown.value; 
+            const username = document.getElementById('username').value.trim(); 
+            const password = document.getElementById('password').value.trim(); 
+            // fetch users from backend and validate
+            const users = await apiGetUsers();
+            if (users[sectionId] && users[sectionId].username === username && users[sectionId].password === password) { 
+                localStorage.setItem('loggedInSection', sectionId); 
+                currentSection = sectionId === 'admin' ? { id: 'admin', title: 'Admin Panel' } : sections.find(s => s.id === sectionId); 
+                showDashboardView(); 
+            } else { 
+                showToast('Invalid credentials or no section selected.', 'error'); 
+            } 
+        });
+
+        logoutBtn.addEventListener('click', () => { localStorage.removeItem('loggedInSection'); currentSection = null; showLoginView(); });
+
+        exportBtn.addEventListener('click', async function () {
+          let dataToExport = [];
+          
+          if (currentSection.id === 'admin') {
+            for (const sec of sections) {
+              const data = await getSectionData(sec.id);
+              dataToExport.push({ section: sec.title, items: data });
+            }
+            
+            const combinedDataForExport = [];
+            dataToExport.forEach(sectionData => {
+              if (sectionData.items.length > 0) {
+                sectionData.items.forEach(item => {
+                  let exportItem = {
+                    'Section': sectionData.section,
+                    'Order ID': item['order-id'],
+                    'Customer Name': item['customer-name'],
+                    'Contact Person': item['contact-person'],
+                    'Product': item.product,
+                    'Assigned To': item['assigned-to'],
+                    'PO Number': item['po-number'],
+                    'DC number': item['dc-number'],
+                    'PO Dt over due': item['po-over-due'],
+                    'PO expiry Dt over due': item['po-expiry-over-due'],
+                    'Order Date': item['order-date'],
+                    'Expected Date': item['expected-date'],
+                    'Quantity': item.quantity,
+                    'balance qty': item['balance-qty'],
+                    'sent qty': item['sent-qty'],
+                    'UOM': item['uom'],
+                    'T.D.': item['td'],
+                    'Description': item['description'],
+                    'Note': item['note'],
+                    'Status': item['status'],
+                    'Pending Days': item['pending-days'],
+                    'Attached Files': item.files && item.files.length > 0 ? item.files.map(file => file.name).join(', ') : 'N/A'
+                  };
+                  combinedDataForExport.push(exportItem);
+                });
+              } else {
+                 let emptyItem = { 'Section': sectionData.section };
+                 fieldOrder.forEach(field => {
+                    emptyItem[field] = 'N/A';
+                 });
+                 if (sectionData.section === 'Pending Orders') {
+                     emptyItem['Source Section'] = 'N/A';
+                 }
+                 emptyItem['Attached Files'] = 'N/A';
+                 combinedDataForExport.push(emptyItem);
+              }
+            });
+
+            if (combinedDataForExport.length === 0) {
+              showToast('No data to export.', 'warning');
+              return;
+            }
+
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(combinedDataForExport);
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'All Sections Data');
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin_all_sections_data.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data exported!', 'success');
+
+          } else {
+            const data = await getSectionData(currentSection.id);
+            if (data.length === 0) {
+              showToast('No data to export.', 'warning');
+              return;
+            }
+            // Use the section's field order for the export headers
+            const headers = [...currentSection.fields];
+            if(currentSection.id !== 'pending-orders') {
+                headers.push('Attached Files');
+            }
+            
+            const sheetData = data.map(item => {
+                let row = {};
+                headers.forEach(h => {
+                     if (h === 'Attached Files') {
+                        row[h] = item.files && item.files.length > 0 ? item.files.map(f => f.name).join(', ') : '';
+                    } else {
+                        const fieldName = h.toLowerCase().replace(/ /g, '-').replace(/\./g, '');
+                        row[h] = item[fieldName] || '';
+                    }
+                });
+                return row;
+            });
+
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(sheetData, {header: headers});
+            XLSX.utils.book_append_sheet(workbook, worksheet, currentSection.title);
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentSection.id}_data.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data exported!', 'success');
+          }
+        });
+
+        function showLoginView() { loginView.classList.remove('hidden'); dashboardView.classList.add('hidden'); }
+        function showDashboardView() { loginView.classList.add('hidden'); dashboardView.classList.remove('hidden'); renderDashboard(); }
+        function showToast(message, type = 'error') { 
+            toastMessage.textContent = message; 
+            toast.className = `fixed top-5 right-5 py-2 px-4 rounded-lg shadow-lg z-50 ${ type === 'success' ? 'bg-green-500' : type === 'warning' ? 'bg-yellow-500' : 'bg-red-500'} text-white`; 
+            toast.classList.remove('hidden'); 
+            setTimeout(() => toast.classList.add('hidden'), 4000); 
+        }
+
+        function init() {
+            sectionDropdown.innerHTML = '<option value="" disabled selected>-- Choose a section --</option>';
+            sectionDropdown.innerHTML += `<option value="admin">Admin Panel</option>`;
+            sections.forEach(sec => {
+                const option = document.createElement('option');
+                option.value = sec.id;
+                option.textContent = sec.title;
+                sectionDropdown.appendChild(option);
+            });
+            const loggedInSectionId = localStorage.getItem('loggedInSection');
+            if (loggedInSectionId) {
+                currentSection = loggedInSectionId === 'admin' ? { id: 'admin', title: 'Admin Panel' } : sections.find(s => s.id === loggedInSectionId);
+                if (currentSection) { showDashboardView(); } else { localStorage.removeItem('loggedInSection'); showLoginView(); }
+            } else {
+                showLoginView();
+            }
+        }
+        init();
+    });
+    </script>
+</body>
+</html>

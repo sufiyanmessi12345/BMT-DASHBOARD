@@ -1,0 +1,26 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "xprotocol",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 100,
+            "server": "127.0.0.1",
+            "port": 3306,
+            "sshOptions": {
+                "port": 22,
+                "host": "127.0.0.1",
+                "username": "BMT",
+                "password": "Khan@118114"
+            },
+            "driver": "MySQL",
+            "name": "MySQL",
+            "database": "BMT",
+            "username": "BMT",
+            "password": "Khan@118114",
+            "connectionTimeout": 30
+        }
+    ]
+}
